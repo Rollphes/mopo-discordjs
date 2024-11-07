@@ -5,8 +5,8 @@ import {
 
 import { InteractionManager } from '@/clients/InteractionManager'
 import {
-  ChannelSelectMenuInteractionExecute,
   ChannelSelectMenuComponentData,
+  ChannelSelectMenuInteractionExecute,
 } from '@/types'
 
 export class ChannelSelectMenuBuilder extends OriginChannelSelectMenuBuilder {
