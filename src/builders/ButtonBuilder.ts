@@ -2,21 +2,17 @@ import {
   ButtonBuilder as OriginButtonBuilder,
   ButtonStyle,
   ComponentType,
-  LinkButtonComponentData,
 } from 'discord.js'
 
 import { InteractionManager } from '@/clients/InteractionManager'
-import {
-  ButtonInteractionExecute,
-  InteractionButtonComponentData,
-} from '@/types'
+import { ButtonComponentData, ButtonInteractionExecute } from '@/types'
 
 export class ButtonBuilder extends OriginButtonBuilder {
   private _customId?: string
 
   constructor(
     private interactionManager: InteractionManager,
-    data?: InteractionButtonComponentData | LinkButtonComponentData,
+    data?: ButtonComponentData,
   ) {
     super(Object.assign({ type: ComponentType.Button }, data))
     if (!data) return

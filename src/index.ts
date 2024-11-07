@@ -1,7 +1,9 @@
 // ComponentData
 import {
+  ButtonComponentData,
   ChannelSelectMenuComponentData,
   InteractionButtonComponentData,
+  LinkButtonComponentData,
   MentionableSelectMenuComponentData,
   ModalComponentData,
   RoleSelectMenuComponentData,
@@ -11,8 +13,10 @@ import {
 } from '@/types'
 
 export {
+  ButtonComponentData,
   ChannelSelectMenuComponentData,
   InteractionButtonComponentData,
+  LinkButtonComponentData,
   MentionableSelectMenuComponentData,
   ModalComponentData,
   RoleSelectMenuComponentData,

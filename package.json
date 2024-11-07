@@ -1,6 +1,6 @@
 {
 	"name": "discord-interaction-binder",
-	"version": "0.0.4",
+	"version": "0.0.5",
 	"homepage": "https://rollphes.github.io/discord-interaction-binder/",
 	"bugs": "https://github.com/Rollphes/discord-interaction-binder/issues",
 	"main": "dist/index.js",

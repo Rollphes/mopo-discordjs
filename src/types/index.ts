@@ -8,6 +8,7 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   InteractionButtonComponentData as OriginInteractionButtonComponentData,
+  LinkButtonComponentData as OriginLinkButtonComponentData,
   MentionableSelectMenuComponentData as OriginMentionableSelectMenuComponentData,
   MentionableSelectMenuInteraction,
   MessageApplicationCommandData as OriginMessageApplicationCommandData,
@@ -25,17 +26,24 @@ import {
   UserSelectMenuInteraction,
 } from 'discord.js'
 
+// Button
 export interface InteractionButtonComponentData
   extends Omit<OriginInteractionButtonComponentData, 'type'> {
   execute: ButtonInteractionExecute
   type?: ComponentType.Button
 }
+export interface LinkButtonComponentData
+  extends Omit<OriginLinkButtonComponentData, 'type'> {
+  type?: ComponentType.Button
+}
+export type ButtonComponentData =
+  | InteractionButtonComponentData
+  | LinkButtonComponentData
 export type ButtonInteractionExecute = (
   interaction: ButtonInteraction,
 ) => Promise<void>
-interface ButtonInteractionExecuteData {
-  type: ComponentType.Button
-  customId: string
+interface ButtonInteractionExecuteData
+  extends Pick<OriginInteractionButtonComponentData, 'type' | 'customId'> {
   execute: ButtonInteractionExecute
 }
 
