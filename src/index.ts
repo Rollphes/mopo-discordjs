@@ -23,11 +23,13 @@ export {
 
 // CommandData
 import {
+  ApplicationCommandData,
   ChatInputApplicationCommandData,
   MessageApplicationCommandData,
   UserApplicationCommandData,
 } from '@/types'
 export {
+  ApplicationCommandData,
   ChatInputApplicationCommandData,
   MessageApplicationCommandData,
   UserApplicationCommandData,
