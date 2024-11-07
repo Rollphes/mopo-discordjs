@@ -42,7 +42,7 @@
 	"author": "Rollphes",
 	"license": "MIT",
 	"dependencies": {
-		"discord.js": ">=14.16.2"
+		"discord.js": ">=14.16.3"
 	},
 	"devDependencies": {
 		"@types/node": "^22.7.3",
