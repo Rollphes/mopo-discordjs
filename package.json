@@ -1,0 +1,68 @@
+{
+	"name": "discord-interaction-binder",
+	"version": "0.0.1",
+	"homepage": "https://rollphes.github.io/discord-interaction-binder/",
+	"bugs": "https://github.com/Rollphes/discord-interaction-binder/issues",
+	"main": "dist/index.js",
+	"module": "dist/index.mjs",
+	"types": "dist/index.d.ts",
+	"directories": {
+		"lib": "src",
+		"docs": "docs"
+	},
+	"exports": {
+		".": {
+			"require": "./dist/index.js",
+			"import": "./dist/index.mjs"
+		}
+	},
+	"scripts": {
+		"updateDoc": "npm run docs && git add docs && git commit -m \"[update]update docs\" && git push",
+		"create-release": "gh release create v%npm_package_version% -t v%npm_package_version% -n \"## Bug Fixes\" --draft",
+		"prepublishOnly": "npm run build && npm run create-release",
+		"docs": "typedoc",
+		"build": "tsup src/index.ts --format cjs,esm --dts",
+		"lint": "eslint ."
+	},
+	"keywords": [
+		"discord",
+		"discord.js",
+		"interaction",
+		"binder",
+		"wrapper",
+		"node",
+		"node-js",
+		"nodejs-modules",
+		"wrapper-library"
+	],
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Rollphes/discord-interaction-binder.git"
+	},
+	"author": "Rollphes",
+	"license": "MIT",
+	"dependencies": {
+		"discord.js": ">=14.16.2"
+	},
+	"devDependencies": {
+		"@types/node": "^22.7.3",
+		"@typescript-eslint/eslint-plugin": "^8.7.0",
+		"@typescript-eslint/parser": "^8.7.0",
+		"esbuild": "^0.24.0",
+		"eslint": "^8.57.0",
+		"eslint-config-prettier": "^9.1.0",
+		"eslint-plugin-jsdoc": "^50.3.0",
+		"eslint-plugin-prettier": "^5.2.1",
+		"eslint-plugin-simple-import-sort": "^12.1.1",
+		"prettier": "^3.3.3",
+		"ts-node": "^10.9.2",
+		"tsc-alias": "^1.8.10",
+		"tsconfig-paths": "^4.2.0",
+		"tsup": "^8.3.5",
+		"typedoc": "^0.26.7",
+		"typescript": "^5.6.3"
+	},
+	"peerDependencies": {
+		"discord.js": ">=14 || ^14.0.0-dev"
+	}
+}
