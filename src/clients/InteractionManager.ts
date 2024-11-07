@@ -43,9 +43,9 @@ export class InteractionManager {
     this.cache.set(customId, data)
   }
 
-  public async setCommand(
+  public async setCommands(
+    data: ApplicationCommandData[],
     guildId?: Snowflake,
-    ...data: ApplicationCommandData[]
   ): Promise<void> {
     data.forEach((command) => {
       if (
