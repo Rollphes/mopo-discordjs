@@ -1,0 +1,13 @@
+/node_modules
+/src
+/docs
+/.vscode
+/.github
+
+.eslintrc.json
+.eslintignore
+.gitignore
+.prettierrc
+.prettierignore
+tsconfig.json
+typedoc.json
