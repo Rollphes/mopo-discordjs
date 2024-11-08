@@ -33,8 +33,10 @@ export class InteractionManager {
   }
 
   public set(customId: string, data: InteractionExecuteData): void {
+    const cachedExecute = this.cache.get(customId)
     if (
-      this.cache.get(customId)?.execute.toString() !== data.execute.toString()
+      cachedExecute &&
+      cachedExecute.execute.toString() !== data.execute.toString()
     ) {
       throw new Error(
         `The customId ${customId} is already in use with a different execute function.`,
@@ -48,9 +50,10 @@ export class InteractionManager {
     guildId?: Snowflake,
   ): Promise<void> {
     data.forEach((command) => {
+      const cachedCommand = this.commands.get(command.name)
       if (
-        this.commands.get(command.name)?.execute.toString() !==
-        command.execute.toString()
+        cachedCommand &&
+        cachedCommand.execute.toString() !== command.execute.toString()
       ) {
         throw new Error(
           `The commandName ${command.name} is already in use with a different execute function.`,
