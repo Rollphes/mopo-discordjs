@@ -14,17 +14,14 @@ export class ModalBuilder extends OriginModalBuilder {
       ? {
           customId: data.customId,
           title: data.title,
-          components: [
-            {
+          components: data.components.map((component) => {
+            return {
               type: ComponentType.ActionRow,
-              components: data.components.map((component) => {
-                return Object.assign(
-                  { type: ComponentType.TextInput },
-                  component,
-                )
-              }),
-            },
-          ],
+              components: [
+                Object.assign({ type: ComponentType.TextInput }, component),
+              ],
+            }
+          }),
         }
       : undefined
     super(modalData)
