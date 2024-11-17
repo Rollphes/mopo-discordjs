@@ -56,6 +56,30 @@ export class InteractionManager {
     else await this.client.application.commands.set(data)
   }
 
+  public async clearCommands(guildId?: Snowflake): Promise<void> {
+    this.commands.clear()
+    const application = this.client.application
+    if (!application) return
+
+    if (guildId) {
+      const guildCommands = await application.commands.fetch({
+        guildId: guildId,
+      })
+      await Promise.all(
+        guildCommands.map(async (c) => {
+          await application.commands.delete(c.id)
+        }),
+      )
+    } else {
+      const clientCommands = await application.commands.fetch()
+      await Promise.all(
+        clientCommands.map(async (c) => {
+          await application.commands.delete(c.id)
+        }),
+      )
+    }
+  }
+
   private async messageComponentExecute(
     interaction: Interaction,
   ): Promise<void> {
