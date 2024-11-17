@@ -67,7 +67,7 @@ export class InteractionManager {
       })
       await Promise.all(
         guildCommands.map(async (c) => {
-          await application.commands.delete(c.id)
+          await application.commands.delete(c.id, guildId)
         }),
       )
     } else {
