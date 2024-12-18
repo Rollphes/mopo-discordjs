@@ -6,6 +6,7 @@ import {
 } from 'discord.js'
 import fs from 'fs'
 import path from 'path'
+import { fileURLToPath } from 'url'
 
 import { BaseModule } from '@/BaseModule'
 import { ApplicationCommandData, ComponentData, ComponentType } from '@/types'
@@ -41,7 +42,7 @@ export class ModuleManager {
         withFileTypes: true,
       })
       .filter((file) => file.isFile() && path.extname(file.name) === '.ts')
-      .map((file) => path.join(file.parentPath, file.name))
+      .map((file) => fileURLToPath(path.join(file.parentPath, file.name)))
     console.log('-- Initializing modules --')
     await this.initModules(sourceFilePaths)
     console.log('-- Initializing commands --')
