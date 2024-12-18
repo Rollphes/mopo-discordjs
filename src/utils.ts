@@ -130,6 +130,23 @@ export function createBuilder<R extends ComponentData>(
           type: OriginComponentType.ChannelSelect,
         }),
       ) as BuilderType<R>
+    case ComponentType.Modal:
+      return new ModalBuilder(
+        component
+          ? {
+              customId: component.customId,
+              title: component.title,
+              components: component.components.map((component) => {
+                return {
+                  type: OriginComponentType.ActionRow,
+                  components: [
+                    Object.assign({ type: ComponentType.TextInput }, component),
+                  ],
+                }
+              }),
+            }
+          : undefined,
+      ) as BuilderType<R>
     default:
       throw new Error('Invalid component type')
   }
