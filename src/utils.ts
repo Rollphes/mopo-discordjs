@@ -10,6 +10,7 @@ import {
   MentionableSelectMenuBuilder,
   MessageActionRowComponentBuilder,
   MessageActionRowComponentData,
+  ModalBuilder,
   RoleSelectMenuBuilder,
   StringSelectMenuBuilder,
   UserSelectMenuBuilder,
@@ -22,9 +23,11 @@ import {
   ComponentType,
   MentionableSelectMenuComponentData,
   MessageComponentData,
+  ModalComponentData,
   RoleSelectMenuComponentData,
   SelectMenuComponentData,
   StringSelectMenuComponentData,
+  UserSelectMenuComponentData,
 } from '@/types'
 
 type BuilderType<ComponentType> = ComponentType extends ButtonComponentData
@@ -37,9 +40,11 @@ type BuilderType<ComponentType> = ComponentType extends ButtonComponentData
         ? RoleSelectMenuBuilder
         : ComponentType extends StringSelectMenuComponentData
           ? StringSelectMenuBuilder
-          : ComponentType extends UserSelectMenuBuilder
+          : ComponentType extends UserSelectMenuComponentData
             ? UserSelectMenuBuilder
-            : ButtonBuilder
+            : ComponentType extends ModalComponentData
+              ? ModalBuilder
+              : never
 
 type ConditionalArray<C extends MessageComponentData> =
   C extends SelectMenuComponentData ? [C] : [C, C?, C?, C?, C?]
