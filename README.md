@@ -14,7 +14,7 @@
 
 mopo-discordjs is a modular Node.js library designed to enhance the Discord.js framework by implementing a class-based architecture and utilizing a monorepo structure. This approach simplifies the integration and removal of features, allowing developers to tailor their bots according to specific needs.
 
-> **Warning**
+> [!WARNING]
 > This project is currently in development. Features are in a preliminary stage and may be subject to change. Originally created for personal use, this library has been adapted for general use, which may lead to unintended behavior or unexpected outcomes.
 
 ## Key Features
