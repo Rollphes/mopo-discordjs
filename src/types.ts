@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import {
   AutocompleteInteraction,
   ButtonInteraction,
@@ -6,7 +7,7 @@ import {
   ChannelSelectMenuInteraction,
   ChatInputApplicationCommandData as OriginChatInputApplicationCommandData,
   ChatInputCommandInteraction,
-  ComponentType,
+  ComponentType as OriginComponentType,
   InteractionButtonComponentData as OriginInteractionButtonComponentData,
   LinkButtonComponentData as OriginLinkButtonComponentData,
   MentionableSelectMenuComponentData as OriginMentionableSelectMenuComponentData,
@@ -25,114 +26,134 @@ import {
   UserSelectMenuComponentData as OriginUserSelectMenuComponentData,
   UserSelectMenuInteraction,
 } from 'discord.js'
+export enum ComponentType {
+  Button = OriginComponentType.Button,
+  StringSelect = OriginComponentType.StringSelect,
+  TextInput = OriginComponentType.TextInput,
+  UserSelect = OriginComponentType.UserSelect,
+  RoleSelect = OriginComponentType.RoleSelect,
+  MentionableSelect = OriginComponentType.MentionableSelect,
+  ChannelSelect = OriginComponentType.ChannelSelect,
+  Modal = -100,
+}
 
 // Button
 export interface InteractionButtonComponentData
-  extends Omit<OriginInteractionButtonComponentData, 'type'> {
-  execute: ButtonInteractionExecute
-  type?: ComponentType.Button
+  extends Omit<OriginInteractionButtonComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.Button
+  readonly customId: string
+  readonly execute: ButtonInteractionExecute
 }
 export interface LinkButtonComponentData
-  extends Omit<OriginLinkButtonComponentData, 'type'> {
-  type?: ComponentType.Button
+  extends Omit<OriginLinkButtonComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.Button
+  readonly execute: undefined
 }
+
 export type ButtonComponentData =
   | InteractionButtonComponentData
   | LinkButtonComponentData
 export type ButtonInteractionExecute = (
   interaction: ButtonInteraction,
 ) => Promise<void>
-interface ButtonInteractionExecuteData
-  extends Pick<OriginInteractionButtonComponentData, 'type' | 'customId'> {
-  execute: ButtonInteractionExecute
+interface ButtonInteractionExecuteData {
+  readonly type: ComponentType.Button
+  readonly execute: ButtonInteractionExecute
 }
 
 // ChannelSelectMenu
 export interface ChannelSelectMenuComponentData
-  extends Omit<OriginChannelSelectMenuComponentData, 'type'> {
-  execute: ChannelSelectMenuInteractionExecute
-  type?: ComponentType.ChannelSelect
+  extends Omit<OriginChannelSelectMenuComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.ChannelSelect
+  readonly customId: string
+  readonly execute: ChannelSelectMenuInteractionExecute
 }
 export type ChannelSelectMenuInteractionExecute = (
   interaction: ChannelSelectMenuInteraction,
 ) => Promise<void>
-interface ChannelSelectMenuInteractionExecuteData
-  extends Pick<OriginChannelSelectMenuComponentData, 'type' | 'customId'> {
-  execute: ChannelSelectMenuInteractionExecute
+interface ChannelSelectMenuInteractionExecuteData {
+  readonly type: ComponentType.ChannelSelect
+  readonly execute: ChannelSelectMenuInteractionExecute
 }
 
 // MentionableSelectMenu
 export interface MentionableSelectMenuComponentData
-  extends Omit<OriginMentionableSelectMenuComponentData, 'type'> {
-  execute: MentionableSelectMenuInteractionExecute
-  type?: ComponentType.MentionableSelect
+  extends Omit<OriginMentionableSelectMenuComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.MentionableSelect
+  readonly customId: string
+  readonly execute: MentionableSelectMenuInteractionExecute
 }
 export type MentionableSelectMenuInteractionExecute = (
   interaction: MentionableSelectMenuInteraction,
 ) => Promise<void>
-interface MentionableSelectMenuInteractionExecuteData
-  extends Pick<OriginMentionableSelectMenuComponentData, 'type' | 'customId'> {
-  execute: MentionableSelectMenuInteractionExecute
+interface MentionableSelectMenuInteractionExecuteData {
+  readonly type: ComponentType.MentionableSelect
+  readonly execute: MentionableSelectMenuInteractionExecute
 }
 
 // Modal
 export interface TextInputComponentData
   extends Omit<OriginTextInputComponentData, 'type'> {
-  type?: ComponentType.TextInput
+  type?: OriginComponentType.TextInput
 }
 export interface ModalComponentData
-  extends Omit<OriginModalComponentData, 'components'> {
-  execute?: ModalSubmitInteractionExecute
+  extends Omit<OriginModalComponentData, 'components' | 'customId'> {
+  readonly type: ComponentType.Modal
+  readonly customId: string
+  execute: ModalSubmitInteractionExecute
   components: TextInputComponentData[]
 }
 export type ModalSubmitInteractionExecute = (
   interaction: ModalSubmitInteraction,
 ) => Promise<void>
-export interface ModalSubmitInteractionExecuteData
-  extends Pick<OriginTextInputComponentData, 'type' | 'customId'> {
-  execute: ModalSubmitInteractionExecute
+export interface ModalSubmitInteractionExecuteData {
+  readonly type: ComponentType.Modal
+  readonly execute: ModalSubmitInteractionExecute
 }
 
 // RoleSelectMenu
 export interface RoleSelectMenuComponentData
-  extends Omit<OriginRoleSelectMenuComponentData, 'type'> {
-  execute: RoleSelectMenuInteractionExecute
-  type?: ComponentType.RoleSelect
+  extends Omit<OriginRoleSelectMenuComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.RoleSelect
+  readonly customId: string
+  readonly execute: RoleSelectMenuInteractionExecute
 }
 export type RoleSelectMenuInteractionExecute = (
   interaction: RoleSelectMenuInteraction,
 ) => Promise<void>
-interface RoleSelectMenuInteractionExecuteData
-  extends Pick<OriginRoleSelectMenuComponentData, 'type' | 'customId'> {
-  execute: RoleSelectMenuInteractionExecute
+interface RoleSelectMenuInteractionExecuteData {
+  readonly type: ComponentType.RoleSelect
+  readonly execute: RoleSelectMenuInteractionExecute
 }
 
 // StringSelectMenu
 export interface StringSelectMenuComponentData
-  extends Omit<OriginStringSelectMenuComponentData, 'type'> {
-  execute: StringSelectMenuInteractionExecute
-  type?: ComponentType.StringSelect
+  extends Omit<OriginStringSelectMenuComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.StringSelect
+  readonly customId: string
+  readonly execute: StringSelectMenuInteractionExecute
 }
 export type StringSelectMenuInteractionExecute = (
   interaction: StringSelectMenuInteraction,
 ) => Promise<void>
-interface StringSelectMenuInteractionExecuteData
-  extends Pick<OriginStringSelectMenuComponentData, 'type' | 'customId'> {
-  execute: StringSelectMenuInteractionExecute
+interface StringSelectMenuInteractionExecuteData {
+  readonly type: ComponentType.StringSelect
+  readonly execute: StringSelectMenuInteractionExecute
 }
 
 // UserSelectMenu
 export interface UserSelectMenuComponentData
-  extends Omit<OriginUserSelectMenuComponentData, 'type'> {
-  execute: UserSelectMenuInteractionExecute
-  type?: ComponentType.UserSelect
+  extends Omit<OriginUserSelectMenuComponentData, 'type' | 'customId'> {
+  readonly type: ComponentType.UserSelect
+  readonly customId: string
+  readonly execute: UserSelectMenuInteractionExecute
 }
 export type UserSelectMenuInteractionExecute = (
   interaction: UserSelectMenuInteraction,
 ) => Promise<void>
-interface UserSelectMenuInteractionExecuteData
-  extends Pick<OriginUserSelectMenuComponentData, 'type' | 'customId'> {
-  execute: UserSelectMenuInteractionExecute
+interface UserSelectMenuInteractionExecuteData {
+  readonly type: ComponentType.UserSelect
+  readonly execute: UserSelectMenuInteractionExecute
 }
 
 export type InteractionExecuteData =
@@ -144,6 +165,30 @@ export type InteractionExecuteData =
   | StringSelectMenuInteractionExecuteData
   | UserSelectMenuInteractionExecuteData
 
+export type ComponentData =
+  | ButtonComponentData
+  | ChannelSelectMenuComponentData
+  | MentionableSelectMenuComponentData
+  | ModalComponentData
+  | RoleSelectMenuComponentData
+  | StringSelectMenuComponentData
+  | UserSelectMenuComponentData
+
+export type MessageComponentData =
+  | ButtonComponentData
+  | ChannelSelectMenuComponentData
+  | MentionableSelectMenuComponentData
+  | RoleSelectMenuComponentData
+  | StringSelectMenuComponentData
+  | UserSelectMenuComponentData
+
+export type SelectMenuComponentData =
+  | ChannelSelectMenuComponentData
+  | MentionableSelectMenuComponentData
+  | RoleSelectMenuComponentData
+  | StringSelectMenuComponentData
+  | UserSelectMenuComponentData
+
 export type ApplicationCommandData =
   | UserApplicationCommandData
   | MessageApplicationCommandData
@@ -151,19 +196,19 @@ export type ApplicationCommandData =
 
 export interface UserApplicationCommandData
   extends OriginUserApplicationCommandData {
-  execute: (
+  readonly execute: (
     interaction: UserContextMenuCommandInteraction<CacheType>,
   ) => Promise<void>
 }
 export interface MessageApplicationCommandData
   extends OriginMessageApplicationCommandData {
-  execute: (
+  readonly execute: (
     interaction: MessageContextMenuCommandInteraction<CacheType>,
   ) => Promise<void>
 }
 export interface ChatInputApplicationCommandData
   extends OriginChatInputApplicationCommandData {
-  execute: (
+  readonly execute: (
     interaction: ChatInputCommandInteraction<CacheType>,
   ) => Promise<void>
   autoComplete?: (

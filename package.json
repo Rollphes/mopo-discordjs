@@ -1,8 +1,8 @@
 {
-	"name": "discord-interaction-binder",
-	"version": "0.0.10",
-	"homepage": "https://rollphes.github.io/discord-interaction-binder/",
-	"bugs": "https://github.com/Rollphes/discord-interaction-binder/issues",
+	"name": "mopo-discordjs",
+	"version": "0.0.1",
+	"homepage": "https://rollphes.github.io/mopo-discordjs/",
+	"bugs": "https://github.com/Rollphes/mopo-discordjs/issues",
 	"main": "dist/index.js",
 	"module": "dist/index.mjs",
 	"types": "dist/index.d.ts",
@@ -37,7 +37,7 @@
 	],
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/Rollphes/discord-interaction-binder.git"
+		"url": "git+https://github.com/Rollphes/mopo-discordjs.git"
 	},
 	"author": "Rollphes",
 	"license": "MIT",
