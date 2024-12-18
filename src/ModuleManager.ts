@@ -35,20 +35,20 @@ export class ModuleManager {
     if (this.isInitialized)
       throw new Error('ModuleManager is already initialized')
 
-    const sourceFilePaths = fs
+    const sourceFileUrls = fs
       .readdirSync(appPath, {
         recursive: true,
         encoding: 'utf8',
         withFileTypes: true,
       })
       .filter((file) => file.isFile() && path.extname(file.name) === '.ts')
-      .map((file) => fileURLToPath(path.join(file.parentPath, file.name)))
+      .map((file) => `file://${path.join(file.parentPath, file.name)}`)
     console.log('-- Initializing modules --')
-    await this.initModules(sourceFilePaths)
+    await this.initModules(sourceFileUrls)
     console.log('-- Initializing commands --')
-    await this.initCommands(sourceFilePaths, guildId)
+    await this.initCommands(sourceFileUrls, guildId)
     console.log('-- Initializing components --')
-    await this.initComponents(sourceFilePaths)
+    await this.initComponents(sourceFileUrls)
     this.isInitialized = true
   }
 
@@ -88,18 +88,18 @@ export class ModuleManager {
     }
   }
 
-  private async initModules(sourceFilePaths: string[]): Promise<void> {
-    const moduleFilePaths = sourceFilePaths.filter((filePath) => {
-      const content = fs.readFileSync(filePath, 'utf8')
+  private async initModules(sourceFileUrls: string[]): Promise<void> {
+    const moduleFileUrls = sourceFileUrls.filter((fileUrl) => {
+      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
       return /export\s+default\s+class\s+[\s\S]*?\s+extends\s+BaseModule/g.test(
         content,
       )
     })
 
     await Promise.all(
-      moduleFilePaths.map(async (filePath) => {
+      moduleFileUrls.map(async (fileUrl) => {
         try {
-          const module = (await import(filePath)) as ModuleNodeModule
+          const module = (await import(fileUrl)) as ModuleNodeModule
           if (module.default) {
             const moduleName = module.default.name
             this.modules.set(moduleName, new module.default(this.client, this))
@@ -107,11 +107,11 @@ export class ModuleManager {
             console.log('✅️ :', moduleName)
           } else {
             throw new Error(
-              `Module in ${filePath} does not have a valid default export`,
+              `Module in ${fileUrl} does not have a valid default export`,
             )
           }
         } catch (e) {
-          console.error('❌ :', filePath)
+          console.error('❌ :', fileUrl)
           throw e
         }
       }),
@@ -119,35 +119,35 @@ export class ModuleManager {
   }
 
   private async initCommands(
-    sourceFilePaths: string[],
+    sourceFileUrls: string[],
     guildId?: string,
   ): Promise<void> {
-    const commandFilePaths = sourceFilePaths.filter((filePath) => {
-      const content = fs.readFileSync(filePath, 'utf8')
+    const commandFileUrls = sourceFileUrls.filter((fileUrl) => {
+      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
       return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)/g.test(
         content,
       )
     })
 
     const commands = await Promise.all(
-      commandFilePaths.map(async (filePath) => {
+      commandFileUrls.map(async (fileUrl) => {
         try {
-          const commandModule = (await import(filePath)) as CommandNodeModule
+          const commandModule = (await import(fileUrl)) as CommandNodeModule
           if (commandModule.default) {
             if (!('execute' in commandModule.default)) {
               throw new Error(
-                `Command in ${filePath} does not have a valid execute function`,
+                `Command in ${fileUrl} does not have a valid execute function`,
               )
             }
             console.log('✅️ :', commandModule.default.name)
             return commandModule.default
           } else {
             throw new Error(
-              `Command in ${filePath} does not have a valid default export`,
+              `Command in ${fileUrl} does not have a valid default export`,
             )
           }
         } catch (e) {
-          console.error('❌ :', filePath)
+          console.error('❌ :', fileUrl)
           throw e
         }
       }),
@@ -170,24 +170,22 @@ export class ModuleManager {
     else await this.client.application.commands.set(commands)
   }
 
-  private async initComponents(sourceFilePaths: string[]): Promise<void> {
-    const componentFilePaths = sourceFilePaths.filter((filePath) => {
-      const content = fs.readFileSync(filePath, 'utf8')
+  private async initComponents(sourceFileUrls: string[]): Promise<void> {
+    const componentFileUrls = sourceFileUrls.filter((fileUrl) => {
+      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
       return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)/g.test(
         content,
       )
     })
 
     await Promise.all(
-      componentFilePaths.map(async (filePath) => {
+      componentFileUrls.map(async (fileUrl) => {
         try {
-          const componentModule = (await import(
-            filePath
-          )) as ComponentNodeModule
+          const componentModule = (await import(fileUrl)) as ComponentNodeModule
           if (componentModule.default) {
             if (!('execute' in componentModule.default)) {
               throw new Error(
-                `Component in ${filePath} does not have a valid execute function`,
+                `Component in ${fileUrl} does not have a valid execute function`,
               )
             }
             if (!componentModule.default.execute) return
@@ -198,11 +196,11 @@ export class ModuleManager {
             )
           } else {
             throw new Error(
-              `Component in ${filePath} does not have a valid default export`,
+              `Component in ${fileUrl} does not have a valid default export`,
             )
           }
         } catch (e) {
-          console.error('❌ :', filePath)
+          console.error('❌ :', fileUrl)
           throw e
         }
       }),
