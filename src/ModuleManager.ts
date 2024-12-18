@@ -1,6 +1,4 @@
-import { register } from 'ts-node'
-register()
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ApplicationCommandType,
   Client,
@@ -9,7 +7,6 @@ import {
 } from 'discord.js'
 import fs from 'fs'
 import path from 'path'
-import { fileURLToPath } from 'url'
 
 import { BaseModule } from '@/BaseModule'
 import { ApplicationCommandData, ComponentData, ComponentType } from '@/types'
@@ -32,7 +29,10 @@ export class ModuleManager {
   private commands: Map<string, ApplicationCommandData> = new Map()
   private modules: Map<string, BaseModule> = new Map()
 
-  constructor(private client: Client) {}
+  constructor(
+    private client: Client,
+    private importLinter: (fileUrl: string) => Promise<any>,
+  ) {}
 
   public async init(appPath: string, guildId?: string): Promise<void> {
     if (this.isInitialized)
@@ -45,7 +45,7 @@ export class ModuleManager {
         withFileTypes: true,
       })
       .filter((file) => file.isFile() && path.extname(file.name) === '.ts')
-      .map((file) => `file://${path.join(file.parentPath, file.name)}`)
+      .map((file) => path.join(file.parentPath, file.name))
     console.log('-- Initializing modules --')
     await this.initModules(sourceFileUrls)
     console.log('-- Initializing commands --')
@@ -93,7 +93,7 @@ export class ModuleManager {
 
   private async initModules(sourceFileUrls: string[]): Promise<void> {
     const moduleFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
+      const content = fs.readFileSync(fileUrl, 'utf8')
       return /export\s+default\s+class\s+[\s\S]*?\s+extends\s+BaseModule/g.test(
         content,
       )
@@ -102,7 +102,7 @@ export class ModuleManager {
     await Promise.all(
       moduleFileUrls.map(async (fileUrl) => {
         try {
-          const module = (await import(fileUrl)) as ModuleNodeModule
+          const module = (await this.importLinter(fileUrl)) as ModuleNodeModule
           if (module.default) {
             const moduleName = module.default.name
             this.modules.set(moduleName, new module.default(this.client, this))
@@ -126,7 +126,7 @@ export class ModuleManager {
     guildId?: string,
   ): Promise<void> {
     const commandFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
+      const content = fs.readFileSync(fileUrl, 'utf8')
       return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)/g.test(
         content,
       )
@@ -135,7 +135,9 @@ export class ModuleManager {
     const commands = await Promise.all(
       commandFileUrls.map(async (fileUrl) => {
         try {
-          const commandModule = (await import(fileUrl)) as CommandNodeModule
+          const commandModule = (await this.importLinter(
+            fileUrl,
+          )) as CommandNodeModule
           if (commandModule.default) {
             if (!('execute' in commandModule.default)) {
               throw new Error(
@@ -175,7 +177,7 @@ export class ModuleManager {
 
   private async initComponents(sourceFileUrls: string[]): Promise<void> {
     const componentFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileURLToPath(fileUrl), 'utf8')
+      const content = fs.readFileSync(fileUrl, 'utf8')
       return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)/g.test(
         content,
       )
@@ -184,7 +186,9 @@ export class ModuleManager {
     await Promise.all(
       componentFileUrls.map(async (fileUrl) => {
         try {
-          const componentModule = (await import(fileUrl)) as ComponentNodeModule
+          const componentModule = (await this.importLinter(
+            fileUrl,
+          )) as ComponentNodeModule
           if (componentModule.default) {
             if (!('execute' in componentModule.default)) {
               throw new Error(
