@@ -1,3 +1,6 @@
+import { register } from 'ts-node'
+register()
+
 import {
   ApplicationCommandType,
   Client,
