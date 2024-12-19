@@ -1,6 +1,6 @@
 {
 	"name": "mopo-discordjs",
-	"version": "0.0.8",
+	"version": "0.1.0",
 	"homepage": "https://rollphes.github.io/mopo-discordjs/",
 	"bugs": "https://github.com/Rollphes/mopo-discordjs/issues",
 	"main": "dist/index.js",

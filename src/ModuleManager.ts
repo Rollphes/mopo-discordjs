@@ -16,17 +16,23 @@ type ModuleNodeModule = {
 }
 
 type CommandNodeModule = {
-  default?: ApplicationCommandData
+  default?: ApplicationCommandData<BaseModule | undefined>
 }
 
 type ComponentNodeModule = {
-  default?: ComponentData
+  default?: ComponentData<BaseModule | undefined>
 }
 
 export class ModuleManager {
   private isInitialized: boolean = false
-  private components: Map<string, ComponentData> = new Map()
-  private commands: Map<string, ApplicationCommandData> = new Map()
+  private components: Map<string, ComponentData<BaseModule | undefined>> =
+    new Map()
+  private componentModuleNames: Map<string, string | undefined> = new Map()
+  private commands: Map<
+    string,
+    ApplicationCommandData<BaseModule | undefined>
+  > = new Map()
+  private commandModuleNames: Map<string, string | undefined> = new Map()
   private modules: Map<string, BaseModule> = new Map()
 
   constructor(
@@ -93,8 +99,8 @@ export class ModuleManager {
 
   private async initModules(sourceFileUrls: string[]): Promise<void> {
     const moduleFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileUrl, 'utf8')
-      return /export\s+default\s+class\s+[\s\S]*?\s+extends\s+BaseModule/g.test(
+      const content = this.removeComments(fs.readFileSync(fileUrl, 'utf8'))
+      return /(?<!\/\/\s*)export\s+default\s+class\s+[\s\S]*?\s+extends\s+BaseModule/g.test(
         content,
       )
     })
@@ -125,34 +131,54 @@ export class ModuleManager {
     sourceFileUrls: string[],
     guildId?: string,
   ): Promise<void> {
-    const commandFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileUrl, 'utf8')
-      return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)/g.test(
-        content,
+    const commandFile = sourceFileUrls
+      .map((fileUrl) => {
+        const content = this.removeComments(fs.readFileSync(fileUrl, 'utf8'))
+
+        const isCorrect =
+          /(?<!\/\/\s*)export\s+default\s+\{[\s\S]*?(?<!\/\/\s*)\}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)/g.test(
+            content,
+          )
+        const moduleName =
+          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)<).*?(?=>)/g.exec(
+            content,
+          )
+        return {
+          url: isCorrect ? fileUrl : undefined,
+          moduleName: moduleName ? moduleName[0] : undefined,
+        }
+      })
+      .filter(
+        (file): file is { url: string; moduleName: string | undefined } => {
+          return file.url !== undefined
+        },
       )
-    })
 
     const commands = await Promise.all(
-      commandFileUrls.map(async (fileUrl) => {
+      commandFile.map(async (file) => {
         try {
           const commandModule = (await this.importLinter(
-            fileUrl,
+            file.url,
           )) as CommandNodeModule
           if (commandModule.default) {
             if (!('execute' in commandModule.default)) {
               throw new Error(
-                `Command in ${fileUrl} does not have a valid execute function`,
+                `Command in ${file.url} does not have a valid execute function`,
               )
             }
             console.log('✅️ :', commandModule.default.name)
+            this.commandModuleNames.set(
+              commandModule.default.name,
+              file.moduleName,
+            )
             return commandModule.default
           } else {
             throw new Error(
-              `Command in ${fileUrl} does not have a valid default export`,
+              `Command in ${file.url} does not have a valid default export`,
             )
           }
         } catch (e) {
-          console.error('❌ :', fileUrl)
+          console.error('❌ :', file.url)
           throw e
         }
       }),
@@ -176,23 +202,38 @@ export class ModuleManager {
   }
 
   private async initComponents(sourceFileUrls: string[]): Promise<void> {
-    const componentFileUrls = sourceFileUrls.filter((fileUrl) => {
-      const content = fs.readFileSync(fileUrl, 'utf8')
-      return /export\s+default\s+\{[\s\S]*?\}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)/g.test(
-        content,
+    const componentFile = sourceFileUrls
+      .map((fileUrl) => {
+        const content = this.removeComments(fs.readFileSync(fileUrl, 'utf8'))
+        const isCorrect =
+          /(?<!\/\/\s*)export\s+default\s+\{[\s\S]*?(?<!\/\/\s*)\}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)/g.test(
+            content,
+          )
+        const moduleName =
+          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)<).*?(?=>)/g.exec(
+            content,
+          )
+        return {
+          url: isCorrect ? fileUrl : undefined,
+          moduleName: moduleName ? moduleName[0] : undefined,
+        }
+      })
+      .filter(
+        (file): file is { url: string; moduleName: string | undefined } => {
+          return file.url !== undefined
+        },
       )
-    })
 
     await Promise.all(
-      componentFileUrls.map(async (fileUrl) => {
+      componentFile.map(async (file) => {
         try {
           const componentModule = (await this.importLinter(
-            fileUrl,
+            file.url,
           )) as ComponentNodeModule
           if (componentModule.default) {
             if (!('execute' in componentModule.default)) {
               throw new Error(
-                `Component in ${fileUrl} does not have a valid execute function`,
+                `Component in ${file.url} does not have a valid execute function`,
               )
             }
             if (!componentModule.default.execute) return
@@ -201,17 +242,27 @@ export class ModuleManager {
               componentModule.default.customId,
               componentModule.default,
             )
+            this.componentModuleNames.set(
+              componentModule.default.customId,
+              file.moduleName,
+            )
           } else {
             throw new Error(
-              `Component in ${fileUrl} does not have a valid default export`,
+              `Component in ${file.url} does not have a valid default export`,
             )
           }
         } catch (e) {
-          console.error('❌ :', fileUrl)
+          console.error('❌ :', file.url)
           throw e
         }
       }),
     )
+  }
+
+  private removeComments(content: string): string {
+    return content
+      .replace(/\/\/.*|\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*[\r\n]/gm, '')
   }
 
   private async messageComponentExecute(
@@ -221,35 +272,37 @@ export class ModuleManager {
       return
     const interactionExecute = this.components.get(interaction.customId)
     if (!interactionExecute || !interactionExecute.execute) return
+    const moduleName = this.componentModuleNames.get(interaction.customId)
+    const module = moduleName ? this.modules.get(moduleName) : undefined
 
     switch (interactionExecute.type) {
       case ComponentType.Button:
         if (interaction.isButton())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.StringSelect:
         if (interaction.isStringSelectMenu())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.UserSelect:
         if (interaction.isUserSelectMenu())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.RoleSelect:
         if (interaction.isRoleSelectMenu())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.ChannelSelect:
         if (interaction.isChannelSelectMenu())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.MentionableSelect:
         if (interaction.isMentionableSelectMenu())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
       case ComponentType.Modal:
         if (interaction.isModalSubmit())
-          await interactionExecute.execute(interaction)
+          await interactionExecute.execute(interaction, module)
         break
     }
   }
@@ -258,18 +311,21 @@ export class ModuleManager {
     if (!interaction.isCommand()) return
     const command = this.commands.get(interaction.commandName)
     if (!command || !command.execute) return
+    const moduleName = this.commandModuleNames.get(interaction.commandName)
+    const module = moduleName ? this.modules.get(moduleName) : undefined
 
     switch (command.type) {
       case ApplicationCommandType.User:
         if (interaction.isUserContextMenuCommand())
-          await command.execute(interaction)
+          await command.execute(interaction, module)
         break
       case ApplicationCommandType.Message:
         if (interaction.isMessageContextMenuCommand())
-          await command.execute(interaction)
+          await command.execute(interaction, module)
         break
       default:
-        if (interaction.isChatInputCommand()) await command.execute(interaction)
+        if (interaction.isChatInputCommand())
+          await command.execute(interaction, module)
         break
     }
   }
@@ -277,6 +333,9 @@ export class ModuleManager {
   private async autoCompleteExecute(interaction: Interaction): Promise<void> {
     if (!interaction.isAutocomplete()) return
     const command = this.commands.get(interaction.commandName)
+    const moduleName = this.commandModuleNames.get(interaction.commandName)
+    const module = moduleName ? this.modules.get(moduleName) : undefined
+
     if (
       !command ||
       (command.type !== ApplicationCommandType.ChatInput &&
@@ -285,6 +344,6 @@ export class ModuleManager {
       return
     if (!command || !command.autoComplete) return
 
-    await command.autoComplete(interaction)
+    await command.autoComplete(interaction, module)
   }
 }
