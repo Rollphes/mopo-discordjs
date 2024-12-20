@@ -140,12 +140,14 @@ export class ModuleManager {
             content,
           )
         const moduleName =
-          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)<).*?(?=>)/g.exec(
+          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ApplicationCommandData|UserApplicationCommandData|MessageApplicationCommandData|ChatInputApplicationCommandData)<)[^,>]+/g.exec(
             content,
           )
         return {
           url: isCorrect ? fileUrl : undefined,
-          moduleName: moduleName ? moduleName[0] : undefined,
+          moduleName: moduleName
+            ? moduleName[0].replace(/(\s|\n)*/g, '')
+            : undefined,
         }
       })
       .filter(
@@ -210,12 +212,14 @@ export class ModuleManager {
             content,
           )
         const moduleName =
-          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)<).*?(?=>)/g.exec(
+          /(?<=(?<!\/\/\s*)}\s+as\s+const\s+satisfies\s+(ComponentData|MessageComponentData|SelectMenuComponentData|ButtonComponentData|ChannelSelectMenuComponentData|MentionableSelectMenuComponentData|ModalComponentData|RoleSelectMenuComponentData|StringSelectMenuComponentData|UserSelectMenuComponentData)<)[^,>]+/g.exec(
             content,
           )
         return {
           url: isCorrect ? fileUrl : undefined,
-          moduleName: moduleName ? moduleName[0] : undefined,
+          moduleName: moduleName
+            ? moduleName[0].replace(/(\s|\n)*/g, '')
+            : undefined,
         }
       })
       .filter(
