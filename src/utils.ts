@@ -19,7 +19,6 @@ import {
 import {
   ButtonComponentData,
   ChannelSelectMenuComponentData,
-  ComponentData,
   ComponentType,
   MentionableSelectMenuComponentData,
   MessageComponentData,
@@ -46,8 +45,8 @@ type BuilderType<ComponentType> = ComponentType extends ButtonComponentData
               ? ModalBuilder
               : never
 
-type ConditionalArray<C extends MessageComponentData> =
-  C extends SelectMenuComponentData ? [C] : [C, C?, C?, C?, C?]
+type ConditionalArray<C extends Omit<MessageComponentData, 'execute'>> =
+  C extends Omit<SelectMenuComponentData, 'execute'> ? [C] : [C, C?, C?, C?, C?]
 
 export function createMessageComponents<
   R1 extends MessageComponentData,
@@ -57,11 +56,11 @@ export function createMessageComponents<
   R5 extends MessageComponentData,
 >(
   components: [
-    ConditionalArray<R1>,
-    ConditionalArray<R2>?,
-    ConditionalArray<R3>?,
-    ConditionalArray<R4>?,
-    ConditionalArray<R5>?,
+    ConditionalArray<Omit<R1, 'execute'>>,
+    ConditionalArray<Omit<R2, 'execute'>>?,
+    ConditionalArray<Omit<R3, 'execute'>>?,
+    ConditionalArray<Omit<R4, 'execute'>>?,
+    ConditionalArray<Omit<R5, 'execute'>>?,
   ],
 ): readonly (
   | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
@@ -74,13 +73,15 @@ export function createMessageComponents<
     .map((components) => {
       if (components === undefined) return
       return createActionRow(
-        components.filter((c): c is MessageComponentData => !!c),
+        components.filter(
+          (c): c is Exclude<typeof c, undefined> => c !== undefined,
+        ) as unknown as MessageComponentData[],
       )
     })
     .filter((c): c is Exclude<typeof c, undefined> => !!c)
 }
 
-export function createActionRow<R extends MessageComponentData>(
+function createActionRow<R extends MessageComponentData>(
   components: R[],
 ):
   | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
@@ -96,7 +97,7 @@ export function createActionRow<R extends MessageComponentData>(
   return actionRow
 }
 
-export function createBuilder<R extends ComponentData>(
+function createBuilder<R extends MessageComponentData>(
   component: R,
 ): BuilderType<R> {
   switch (component.type) {
@@ -130,30 +131,13 @@ export function createBuilder<R extends ComponentData>(
           type: OriginComponentType.ChannelSelect,
         }),
       ) as BuilderType<R>
-    case ComponentType.Modal:
-      return new ModalBuilder(
-        component
-          ? {
-              customId: component.customId,
-              title: component.title,
-              components: component.components.map((component) => {
-                return {
-                  type: OriginComponentType.ActionRow,
-                  components: [
-                    Object.assign({ type: ComponentType.TextInput }, component),
-                  ],
-                }
-              }),
-            }
-          : undefined,
-      ) as BuilderType<R>
     default:
       throw new Error('Invalid component type')
   }
 }
 
 export function createModalBuilder<R extends ModalComponentData>(
-  component: R,
+  component: Omit<R, 'execute'>,
   initFields?: { [K in R['components'][number]['customId']]?: string },
 ): BuilderType<R> {
   if (component.type !== ComponentType.Modal)
