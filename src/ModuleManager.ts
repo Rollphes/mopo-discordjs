@@ -1,8 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  APIModalInteractionResponseCallbackData,
   ApplicationCommandType,
   Client,
   Interaction,
+  JSONEncodable,
+  ModalBuilder,
+  ModalComponentData,
   Snowflake,
 } from 'discord.js'
 import fs from 'fs'
@@ -12,7 +16,7 @@ import { BaseModule } from '@/BaseModule'
 import { ApplicationCommandData, ComponentData, ComponentType } from '@/types'
 
 type ModuleNodeModule = {
-  default?: new (client: Client, moduleManager: ModuleManager) => BaseModule
+  default?: new (client: Client) => BaseModule
 }
 
 type CommandNodeModule = {
@@ -24,6 +28,7 @@ type ComponentNodeModule = {
 }
 
 export class ModuleManager {
+  private static customIdParentIdSeparator: string = '-ParentId:'
   private isInitialized: boolean = false
   private components: Map<string, ComponentData<BaseModule | undefined>> =
     new Map()
@@ -34,6 +39,7 @@ export class ModuleManager {
   > = new Map()
   private commandModuleNames: Map<string, string | undefined> = new Map()
   private modules: Map<string, BaseModule> = new Map()
+  private parentInteractionMap: Map<string, Interaction> = new Map()
 
   constructor(
     private client: Client,
@@ -61,13 +67,10 @@ export class ModuleManager {
     this.isInitialized = true
   }
 
-  public has(name: string): boolean {
-    return this.modules.has(name)
-  }
-
   public async interactionExecute(interaction: Interaction): Promise<void> {
+    this.addParentInteraction(interaction)
     await Promise.all([
-      this.messageComponentExecute(interaction),
+      this.componentExecute(interaction),
       this.autoCompleteExecute(interaction),
       this.commandExecute(interaction),
     ])
@@ -111,7 +114,7 @@ export class ModuleManager {
           const module = (await this.importLinter(fileUrl)) as ModuleNodeModule
           if (module.default) {
             const moduleName = module.default.name
-            this.modules.set(moduleName, new module.default(this.client, this))
+            this.modules.set(moduleName, new module.default(this.client))
             await this.modules.get(moduleName)?.init()
             console.log('✅️ :', moduleName)
           } else {
@@ -269,14 +272,17 @@ export class ModuleManager {
       .replace(/^\s*[\r\n]/gm, '')
   }
 
-  private async messageComponentExecute(
-    interaction: Interaction,
-  ): Promise<void> {
+  private async componentExecute(interaction: Interaction): Promise<void> {
     if (!interaction.isModalSubmit() && !interaction.isMessageComponent())
       return
-    const interactionExecute = this.components.get(interaction.customId)
+
+    const customId = interaction.customId.split(
+      ModuleManager.customIdParentIdSeparator,
+    )[0]
+
+    const interactionExecute = this.components.get(customId)
     if (!interactionExecute || !interactionExecute.execute) return
-    const moduleName = this.componentModuleNames.get(interaction.customId)
+    const moduleName = this.componentModuleNames.get(customId)
     const module = moduleName ? this.modules.get(moduleName) : undefined
 
     switch (interactionExecute.type) {
@@ -305,8 +311,19 @@ export class ModuleManager {
           await interactionExecute.execute(interaction, module)
         break
       case ComponentType.Modal:
-        if (interaction.isModalSubmit())
-          await interactionExecute.execute(interaction, module)
+        if (interaction.isModalSubmit()) {
+          const parentInteraction = this.parentInteractionMap.get(
+            interaction.customId.split(
+              ModuleManager.customIdParentIdSeparator,
+            )[1],
+          )
+          await interactionExecute.execute(
+            interaction,
+            parentInteraction,
+            module,
+          )
+          this.parentInteractionMap.delete(interaction.customId)
+        }
         break
     }
   }
@@ -349,5 +366,40 @@ export class ModuleManager {
     if (!command || !command.autoComplete) return
 
     await command.autoComplete(interaction, module)
+  }
+
+  private addParentInteraction(interaction: Interaction): void {
+    if (interaction.isModalSubmit() || interaction.isAutocomplete()) return
+    const originalShowModal = interaction.showModal
+    interaction.showModal = async (
+      modal:
+        | JSONEncodable<APIModalInteractionResponseCallbackData>
+        | ModalComponentData
+        | APIModalInteractionResponseCallbackData,
+    ): Promise<void> => {
+      this.parentInteractionMap.set(interaction.id, interaction)
+      if ('custom_id' in modal) {
+        return originalShowModal.call(
+          interaction,
+          Object.assign(modal, {
+            customId: `${modal.custom_id}${ModuleManager.customIdParentIdSeparator}${interaction.id}`,
+          }),
+        )
+      }
+      if ('customId' in modal) {
+        return originalShowModal.call(
+          interaction,
+          Object.assign(modal, {
+            customId: `${modal.customId}${ModuleManager.customIdParentIdSeparator}${interaction.id}`,
+          }),
+        )
+      }
+      if (modal instanceof ModalBuilder) {
+        modal.setCustomId(
+          `${modal.data.custom_id}${ModuleManager.customIdParentIdSeparator}${interaction.id}`,
+        )
+        return originalShowModal.call(interaction, modal)
+      }
+    }
   }
 }

@@ -151,3 +151,32 @@ export function createBuilder<R extends ComponentData>(
       throw new Error('Invalid component type')
   }
 }
+
+export function createModalBuilder<R extends ModalComponentData>(
+  component: R,
+  initFields?: { [K in R['components'][number]['customId']]?: string },
+): BuilderType<R> {
+  if (component.type !== ComponentType.Modal)
+    throw new Error('Invalid component type for modal')
+  return new ModalBuilder(
+    component
+      ? {
+          customId: component.customId,
+          title: component.title,
+          components: component.components.map((component) => {
+            return {
+              type: OriginComponentType.ActionRow,
+              components: [
+                Object.assign(component, {
+                  type: ComponentType.TextInput,
+                  value: initFields
+                    ? [component.customId as keyof typeof initFields]
+                    : undefined,
+                }),
+              ],
+            }
+          }),
+        }
+      : undefined,
+  ) as BuilderType<R>
+}

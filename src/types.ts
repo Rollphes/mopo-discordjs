@@ -2,12 +2,12 @@
 import {
   AutocompleteInteraction,
   ButtonInteraction,
-  CacheType,
   ChannelSelectMenuComponentData as OriginChannelSelectMenuComponentData,
   ChannelSelectMenuInteraction,
   ChatInputApplicationCommandData as OriginChatInputApplicationCommandData,
   ChatInputCommandInteraction,
   ComponentType as OriginComponentType,
+  Interaction,
   InteractionButtonComponentData as OriginInteractionButtonComponentData,
   LinkButtonComponentData as OriginLinkButtonComponentData,
   MentionableSelectMenuComponentData as OriginMentionableSelectMenuComponentData,
@@ -42,11 +42,10 @@ export enum ComponentType {
 // Button
 export interface InteractionButtonComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginInteractionButtonComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.Button
   readonly customId: string
-  readonly execute: ButtonInteractionExecute<Module, Cached>
+  readonly execute: ButtonInteractionExecute<Module>
 }
 export interface LinkButtonComponentData
   extends Omit<OriginLinkButtonComponentData, 'type' | 'customId'> {
@@ -56,12 +55,10 @@ export interface LinkButtonComponentData
 
 export type ButtonComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = InteractionButtonComponentData<Module, Cached> | LinkButtonComponentData
+> = InteractionButtonComponentData<Module> | LinkButtonComponentData
 export type ButtonInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = (interaction: ButtonInteraction<Cached>, module: Module) => Promise<void>
+> = (interaction: ButtonInteraction, module: Module) => Promise<void>
 interface ButtonInteractionExecuteData<
   Module extends BaseModule | undefined = undefined,
 > {
@@ -72,19 +69,14 @@ interface ButtonInteractionExecuteData<
 // ChannelSelectMenu
 export interface ChannelSelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginChannelSelectMenuComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.ChannelSelect
   readonly customId: string
-  readonly execute: ChannelSelectMenuInteractionExecute<Module, Cached>
+  readonly execute: ChannelSelectMenuInteractionExecute<Module>
 }
 export type ChannelSelectMenuInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = (
-  interaction: ChannelSelectMenuInteraction<Cached>,
-  module: Module,
-) => Promise<void>
+> = (interaction: ChannelSelectMenuInteraction, module: Module) => Promise<void>
 interface ChannelSelectMenuInteractionExecuteData<
   Module extends BaseModule | undefined = undefined,
 > {
@@ -95,17 +87,15 @@ interface ChannelSelectMenuInteractionExecuteData<
 // MentionableSelectMenu
 export interface MentionableSelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginMentionableSelectMenuComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.MentionableSelect
   readonly customId: string
-  readonly execute: MentionableSelectMenuInteractionExecute<Module, Cached>
+  readonly execute: MentionableSelectMenuInteractionExecute<Module>
 }
 export type MentionableSelectMenuInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > = (
-  interaction: MentionableSelectMenuInteraction<Cached>,
+  interaction: MentionableSelectMenuInteraction,
   module: Module,
 ) => Promise<void>
 interface MentionableSelectMenuInteractionExecuteData<
@@ -122,18 +112,17 @@ export interface TextInputComponentData
 }
 export interface ModalComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginModalComponentData, 'components' | 'customId'> {
   readonly type: ComponentType.Modal
   readonly customId: string
-  execute: ModalSubmitInteractionExecute<Module, Cached>
+  execute: ModalSubmitInteractionExecute<Module>
   components: TextInputComponentData[]
 }
 export type ModalSubmitInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > = (
-  interaction: ModalSubmitInteraction<Cached>,
+  interaction: ModalSubmitInteraction,
+  parentInteraction: Interaction | undefined,
   module: Module,
 ) => Promise<void>
 export interface ModalSubmitInteractionExecuteData<
@@ -146,19 +135,14 @@ export interface ModalSubmitInteractionExecuteData<
 // RoleSelectMenu
 export interface RoleSelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginRoleSelectMenuComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.RoleSelect
   readonly customId: string
-  readonly execute: RoleSelectMenuInteractionExecute<Module, Cached>
+  readonly execute: RoleSelectMenuInteractionExecute<Module>
 }
 export type RoleSelectMenuInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = (
-  interaction: RoleSelectMenuInteraction<Cached>,
-  module: Module,
-) => Promise<void>
+> = (interaction: RoleSelectMenuInteraction, module: Module) => Promise<void>
 interface RoleSelectMenuInteractionExecuteData<
   Module extends BaseModule | undefined = undefined,
 > {
@@ -169,19 +153,14 @@ interface RoleSelectMenuInteractionExecuteData<
 // StringSelectMenu
 export interface StringSelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginStringSelectMenuComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.StringSelect
   readonly customId: string
-  readonly execute: StringSelectMenuInteractionExecute<Module, Cached>
+  readonly execute: StringSelectMenuInteractionExecute<Module>
 }
 export type StringSelectMenuInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = (
-  interaction: StringSelectMenuInteraction<Cached>,
-  module: Module,
-) => Promise<void>
+> = (interaction: StringSelectMenuInteraction, module: Module) => Promise<void>
 interface StringSelectMenuInteractionExecuteData<
   Module extends BaseModule | undefined = undefined,
 > {
@@ -192,19 +171,14 @@ interface StringSelectMenuInteractionExecuteData<
 // UserSelectMenu
 export interface UserSelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends Omit<OriginUserSelectMenuComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.UserSelect
   readonly customId: string
-  readonly execute: UserSelectMenuInteractionExecute<Module, Cached>
+  readonly execute: UserSelectMenuInteractionExecute<Module>
 }
 export type UserSelectMenuInteractionExecute<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = (
-  interaction: UserSelectMenuInteraction<Cached>,
-  module: Module,
-) => Promise<void>
+> = (interaction: UserSelectMenuInteraction, module: Module) => Promise<void>
 interface UserSelectMenuInteractionExecuteData<
   Module extends BaseModule | undefined = undefined,
 > {
@@ -223,64 +197,55 @@ export type InteractionExecuteData<
   | StringSelectMenuInteractionExecuteData<Module>
   | UserSelectMenuInteractionExecuteData<Module>
 
-export type ComponentData<
-  Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> = MessageComponentData<Module, Cached> | ModalComponentData<Module, Cached>
+export type ComponentData<Module extends BaseModule | undefined = undefined> =
+  | MessageComponentData<Module>
+  | ModalComponentData<Module>
 
 export type MessageComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
-> =
-  | ButtonComponentData<Module, Cached>
-  | SelectMenuComponentData<Module, Cached>
+> = ButtonComponentData<Module> | SelectMenuComponentData<Module>
 
 export type SelectMenuComponentData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > =
-  | ChannelSelectMenuComponentData<Module, Cached>
-  | MentionableSelectMenuComponentData<Module, Cached>
-  | RoleSelectMenuComponentData<Module, Cached>
-  | StringSelectMenuComponentData<Module, Cached>
-  | UserSelectMenuComponentData<Module, Cached>
+  | ChannelSelectMenuComponentData<Module>
+  | MentionableSelectMenuComponentData<Module>
+  | RoleSelectMenuComponentData<Module>
+  | StringSelectMenuComponentData<Module>
+  | UserSelectMenuComponentData<Module>
 
 export type ApplicationCommandData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > =
-  | UserApplicationCommandData<Module, Cached>
-  | MessageApplicationCommandData<Module, Cached>
-  | ChatInputApplicationCommandData<Module, Cached>
+  | UserApplicationCommandData<Module>
+  | MessageApplicationCommandData<Module>
+  | ChatInputApplicationCommandData<Module>
 
 export interface UserApplicationCommandData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends OriginUserApplicationCommandData {
   readonly execute: (
-    interaction: UserContextMenuCommandInteraction<Cached>,
+    interaction: UserContextMenuCommandInteraction,
     module: Module,
   ) => Promise<void>
 }
 export interface MessageApplicationCommandData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends OriginMessageApplicationCommandData {
   readonly execute: (
-    interaction: MessageContextMenuCommandInteraction<Cached>,
+    interaction: MessageContextMenuCommandInteraction,
     module: Module,
   ) => Promise<void>
 }
 export interface ChatInputApplicationCommandData<
   Module extends BaseModule | undefined = undefined,
-  Cached extends CacheType = CacheType,
 > extends OriginChatInputApplicationCommandData {
   readonly execute: (
-    interaction: ChatInputCommandInteraction<Cached>,
+    interaction: ChatInputCommandInteraction,
     module: Module,
   ) => Promise<void>
   autoComplete?: (
-    interaction: AutocompleteInteraction<Cached>,
+    interaction: AutocompleteInteraction,
     module: Module,
   ) => Promise<void>
 }

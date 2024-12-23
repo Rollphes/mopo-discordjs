@@ -58,8 +58,14 @@ import {
   createActionRow,
   createBuilder,
   createMessageComponents,
+  createModalBuilder,
 } from '@/utils'
-export { createMessageComponents, createActionRow, createBuilder }
+export {
+  createMessageComponents,
+  createActionRow,
+  createBuilder,
+  createModalBuilder,
+}
 
 // Manager
 import { ModuleManager } from '@/ModuleManager'
