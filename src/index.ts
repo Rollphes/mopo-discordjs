@@ -54,8 +54,8 @@ import { BaseModule } from '@/BaseModule'
 export { BaseModule }
 
 // Utils
-import { createMessageComponents, createModalBuilder } from '@/utils'
-export { createMessageComponents, createModalBuilder }
+import { createActionRow, createBuilder, createModalBuilder } from '@/utils'
+export { createModalBuilder, createActionRow, createBuilder }
 
 // Manager
 import { ModuleManager } from '@/ModuleManager'

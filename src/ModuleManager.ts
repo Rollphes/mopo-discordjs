@@ -281,7 +281,7 @@ export class ModuleManager {
     )[0]
 
     const interactionExecute = this.components.get(customId)
-    if (!interactionExecute || !interactionExecute.execute) return
+    if (!interactionExecute || !('execute' in interactionExecute)) return
     const moduleName = this.componentModuleNames.get(customId)
     const module = moduleName ? this.modules.get(moduleName) : undefined
 

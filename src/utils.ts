@@ -17,79 +17,47 @@ import {
 } from 'discord.js'
 
 import {
-  ButtonComponentData,
-  ChannelSelectMenuComponentData,
+  ComponentData,
   ComponentType,
-  MentionableSelectMenuComponentData,
-  MessageComponentData,
+  MessageComponentType,
   ModalComponentData,
-  RoleSelectMenuComponentData,
-  SelectMenuComponentData,
-  StringSelectMenuComponentData,
-  UserSelectMenuComponentData,
 } from '@/types'
 
-type BuilderType<ComponentType> = ComponentType extends ButtonComponentData
+type BuilderType<T extends ComponentType> = T extends ComponentType.Button
   ? ButtonBuilder
-  : ComponentType extends ChannelSelectMenuComponentData
+  : T extends ComponentType.ChannelSelect
     ? ChannelSelectMenuBuilder
-    : ComponentType extends MentionableSelectMenuComponentData
+    : T extends ComponentType.MentionableSelect
       ? MentionableSelectMenuBuilder
-      : ComponentType extends RoleSelectMenuComponentData
+      : T extends ComponentType.RoleSelect
         ? RoleSelectMenuBuilder
-        : ComponentType extends StringSelectMenuComponentData
+        : T extends ComponentType.StringSelect
           ? StringSelectMenuBuilder
-          : ComponentType extends UserSelectMenuComponentData
+          : T extends ComponentType.UserSelect
             ? UserSelectMenuBuilder
-            : ComponentType extends ModalComponentData
+            : T extends ComponentType.Modal
               ? ModalBuilder
               : never
 
-type ConditionalArray<C extends Omit<MessageComponentData, 'execute'>> =
-  C extends Omit<SelectMenuComponentData, 'execute'> ? [C] : [C, C?, C?, C?, C?]
+type ConditionalArray<
+  T extends MessageComponentType,
+  R,
+> = T extends ComponentType.Button ? [R, R?, R?, R?, R?] : [R]
 
-export function createMessageComponents<
-  R1 extends MessageComponentData,
-  R2 extends MessageComponentData,
-  R3 extends MessageComponentData,
-  R4 extends MessageComponentData,
-  R5 extends MessageComponentData,
->(
-  components: [
-    ConditionalArray<Omit<R1, 'execute'>>,
-    ConditionalArray<Omit<R2, 'execute'>>?,
-    ConditionalArray<Omit<R3, 'execute'>>?,
-    ConditionalArray<Omit<R4, 'execute'>>?,
-    ConditionalArray<Omit<R5, 'execute'>>?,
-  ],
-): readonly (
-  | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
-  | ActionRowData<
-      MessageActionRowComponentData | MessageActionRowComponentBuilder
-    >
-  | APIActionRowComponent<APIMessageActionRowComponent>
-)[] {
-  return components
-    .map((components) => {
-      if (components === undefined) return
-      return createActionRow(
-        components.filter(
-          (c): c is Exclude<typeof c, undefined> => c !== undefined,
-        ) as unknown as MessageComponentData[],
-      )
-    })
-    .filter((c): c is Exclude<typeof c, undefined> => !!c)
-}
+type ComponentDataByType<T extends ComponentType> = Extract<
+  ComponentData,
+  { type: T }
+>
 
-function createActionRow<R extends MessageComponentData>(
-  components: R[],
+export function createActionRow<T extends MessageComponentType>(
+  components: ConditionalArray<T, Omit<ComponentDataByType<T>, 'execute'>>,
 ):
   | JSONEncodable<APIActionRowComponent<APIMessageActionRowComponent>>
   | ActionRowData<
       MessageActionRowComponentData | MessageActionRowComponentBuilder
     >
   | APIActionRowComponent<APIMessageActionRowComponent> {
-  const actionRow = new OriginActionRowBuilder<BuilderType<R>>()
+  const actionRow = new OriginActionRowBuilder<BuilderType<T>>()
   components.forEach((c) => {
     if (!c) return
     actionRow.addComponents(createBuilder(c))
@@ -97,49 +65,55 @@ function createActionRow<R extends MessageComponentData>(
   return actionRow
 }
 
-function createBuilder<R extends MessageComponentData>(
-  component: R,
-): BuilderType<R> {
+export function createBuilder<T extends ComponentType>(
+  component: Omit<ComponentDataByType<T>, 'execute'>,
+): BuilderType<T> {
   switch (component.type) {
     case ComponentType.Button:
       return new ButtonBuilder(
         Object.assign(component, { type: OriginComponentType.Button }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
     case ComponentType.StringSelect:
       return new StringSelectMenuBuilder(
         Object.assign(component, {
           type: OriginComponentType.StringSelect,
         }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
     case ComponentType.UserSelect:
       return new UserSelectMenuBuilder(
         Object.assign(component, { type: OriginComponentType.UserSelect }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
     case ComponentType.RoleSelect:
       return new RoleSelectMenuBuilder(
         Object.assign(component, { type: OriginComponentType.RoleSelect }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
     case ComponentType.MentionableSelect:
       return new MentionableSelectMenuBuilder(
         Object.assign(component, {
           type: OriginComponentType.MentionableSelect,
         }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
     case ComponentType.ChannelSelect:
       return new ChannelSelectMenuBuilder(
         Object.assign(component, {
           type: OriginComponentType.ChannelSelect,
         }),
-      ) as BuilderType<R>
+      ) as BuilderType<T>
+    case ComponentType.Modal:
+      return createModalBuilder(
+        component as Omit<ModalComponentData, 'execute'>,
+      ) as BuilderType<T>
     default:
       throw new Error('Invalid component type')
   }
 }
 
-export function createModalBuilder<R extends ModalComponentData>(
-  component: Omit<R, 'execute'>,
+export function createModalBuilder<
+  R extends Omit<ModalComponentData, 'execute'>,
+>(
+  component: R,
   initFields?: { [K in R['components'][number]['customId']]?: string },
-): BuilderType<R> {
+): BuilderType<R['type']> {
   if (component.type !== ComponentType.Modal)
     throw new Error('Invalid component type for modal')
   return new ModalBuilder(
@@ -162,5 +136,5 @@ export function createModalBuilder<R extends ModalComponentData>(
           }),
         }
       : undefined,
-  ) as BuilderType<R>
+  ) as BuilderType<R['type']>
 }

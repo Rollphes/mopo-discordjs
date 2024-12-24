@@ -39,6 +39,14 @@ export enum ComponentType {
   Modal = -100,
 }
 
+export type MessageComponentType =
+  | ComponentType.Button
+  | ComponentType.StringSelect
+  | ComponentType.UserSelect
+  | ComponentType.RoleSelect
+  | ComponentType.MentionableSelect
+  | ComponentType.ChannelSelect
+
 // Button
 export interface InteractionButtonComponentData<
   Module extends BaseModule | undefined = undefined,
@@ -50,7 +58,6 @@ export interface InteractionButtonComponentData<
 export interface LinkButtonComponentData
   extends Omit<OriginLinkButtonComponentData, 'type' | 'customId'> {
   readonly type: ComponentType.Button
-  readonly execute: undefined
 }
 
 export type ButtonComponentData<
