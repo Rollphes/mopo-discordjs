@@ -2,6 +2,7 @@
 import {
   APIModalInteractionResponseCallbackData,
   ApplicationCommandType,
+  ButtonStyle,
   Client,
   Interaction,
   JSONEncodable,
@@ -238,6 +239,11 @@ export class ModuleManager {
             file.url,
           )) as ComponentNodeModule
           if (componentModule.default) {
+            if (
+              componentModule.default.type === ComponentType.Button &&
+              componentModule.default.style === ButtonStyle.Link
+            )
+              return
             if (!('execute' in componentModule.default)) {
               throw new Error(
                 `Component in ${file.url} does not have a valid execute function`,
