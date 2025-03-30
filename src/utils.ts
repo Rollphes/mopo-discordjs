@@ -129,7 +129,7 @@ export function createModalBuilder<
                   type: ComponentType.TextInput,
                   value: initFields
                     ? [component.customId as keyof typeof initFields]
-                    : undefined,
+                    : component.value,
                 }),
               ],
             }
